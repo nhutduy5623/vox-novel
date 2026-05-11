@@ -1,0 +1,17 @@
+services:
+  # Redis: Dùng cho Distributed Lock và Load Balancer API Key
+  redis:
+    image: redis:7-alpine
+    container_name: voxnovel-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  # RabbitMQ: Dùng để nhận lệnh từ Core Service (Dành cho giai đoạn sau)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: voxnovel-rabbitmq
+    ports:
+      - "5672:5672"   # Cổng kết nối code
+      - "15672:15672" # Cổng giao diện quản lý (user/pass mặc định là guest/guest)
+    restart: always

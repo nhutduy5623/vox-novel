@@ -1,0 +1,15 @@
+# VoxNovel AI Engine
+
+Hệ thống phân vai kịch bản audio tự động sử dụng Google Gemini AI.
+
+## Công nghệ sử dụng
+- **Java 17 & Spring Boot 3.x**
+- **Spring AI**: Tích hợp Google Gemini Flash 2.0.
+- **Redis**: Quản lý Pool API Key và xử lý Rate Limit.
+- **CompletableFuture**: Xử lý song song các đoạn văn bản (Chunks) để tối ưu tốc độ.
+- **Docker**: Triển khai hạ tầng Redis & RabbitMQ.
+
+## Cách chạy
+1. Khởi động hạ tầng: `docker-compose up -d`
+2. Cấu hình API Key trong file `.env`, application
+3. Chạy ứng dụng Spring Boot.
