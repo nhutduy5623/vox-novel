@@ -1,19 +1,21 @@
 package com.voxnovel.identity_service.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "roles")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role {
-    @Id
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class Role extends BaseEntity<Role, Long>{
+
+    @Column(unique = true, nullable = false)
     private String name; // Ví dụ: ROLE_ADMIN, ROLE_VIP
 
     private String description;

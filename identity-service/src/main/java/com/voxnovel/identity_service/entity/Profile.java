@@ -1,9 +1,7 @@
 package com.voxnovel.identity_service.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -11,11 +9,9 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Profile {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+@EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
+public class Profile extends BaseEntity<Profile, Long>{
     // Liên kết 1-1 với Account
     // nullable = false đảm bảo mỗi Profile phải thuộc về một Account
     @OneToOne
