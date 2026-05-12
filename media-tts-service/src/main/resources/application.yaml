@@ -1,0 +1,31 @@
+server:
+  port: 8085
+spring:
+  application:
+    name: media-tts-service
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+# Cấu hình Custom cho Service của chúng ta
+voxnovel:
+  minio:
+    endpoint: http://localhost:9000
+    access-key: root_admin
+    secret-key: root_password_123
+    bucket-name: voxnovel-audio
+
+
+#    Có thể cho nhiều API KEY VÀO ĐỂ CHẠY ĐA LUỒNG
+  tts:
+    providers:
+      fpt:
+        api-keys:
+          - "1"
+          - "2"
+      cambai:
+        api-keys:
+          - "3"
+          - "4"
