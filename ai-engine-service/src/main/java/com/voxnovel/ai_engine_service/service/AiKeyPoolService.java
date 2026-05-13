@@ -7,11 +7,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+@EnableScheduling
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,6 +24,9 @@ public class AiKeyPoolService {
 
     // Tên của chiếc "hộp" chứa API Keys trong Redis
     private static final String API_KEY_POOL = "ai_engine:api_keys_pool";
+
+    // Tên của "phòng cách ly" chứa các Key bị Rate Limit 429
+    private static final String API_KEY_COOLDOWN = "ai_engine:api_keys_cooldown";
 
     @Value("${vox-novel.ai-engine-service.keys}")
     private List<String> apiKeys;
@@ -85,4 +92,58 @@ public class AiKeyPoolService {
         if (key == null || key.length() <= 8) return "***";
         return key.substring(0, 4) + "..." + key.substring(key.length() - 4);
     }
+
+    /**
+     * KHAI TỬ: Xóa hoàn toàn một Key khỏi hệ thống.
+     * Dùng khi Key là đồ giả, bị Google khóa vĩnh viễn, hoặc không khởi tạo được ChatClient.
+     */
+    public void markKeyAsDead(String apiKey) {
+        if (apiKey != null) {
+            redisTemplate.opsForZSet().remove(API_KEY_POOL, apiKey);
+            log.warn("Đã TRỤC XUẤT vĩnh viễn API Key [{}] khỏi Pool do phát hiện là key ảo hoặc đã tèo!", maskApiKey(apiKey));
+        }
+    }
+
+    /**
+     * PHẠT THẺ VÀNG (Lỗi 429): Chuyển Key sang phòng cách ly trong đúng 60 giây.
+     */
+    public void reportErrorKey(String apiKey) {
+        if (apiKey != null) {
+            // 1. Gạch tên khỏi danh sách đang hoạt động
+            redisTemplate.opsForZSet().remove(API_KEY_POOL, apiKey);
+
+            // 2. Tính thời gian được thả: Thời điểm hiện tại + 60.000 milliseconds (1 phút)
+            long unlockTime = System.currentTimeMillis() + 60000;
+
+            // 3. Tống vào phòng cách ly. (Score chính là lúc được thả)
+            redisTemplate.opsForZSet().add(API_KEY_COOLDOWN, apiKey, unlockTime);
+
+            log.warn("Đã PHẠT THẺ VÀNG API Key [{}]. Chuyển vào phòng cách ly 60 giây!", maskApiKey(apiKey));
+        }
+    }
+
+    /**
+     * BÁC SĨ ĐI TUẦN (Chạy ngầm mỗi 10 giây)
+     * Kiểm tra phòng cách ly, thả các Key đã mãn hạn tù về lại Pool hoạt động.
+     */
+    @Scheduled(fixedRate = 10000)
+    public void autoHealRateLimitedKeys() {
+        long now = System.currentTimeMillis();
+
+        // Query Redis: Lấy ra các Key có Score (Thời gian thả) từ 0 đến Hiện tại (Tức là đã hết hạn 1 phút)
+        Set<String> healedKeys = redisTemplate.opsForZSet().rangeByScore(API_KEY_COOLDOWN, 0, now);
+
+        if (healedKeys != null && !healedKeys.isEmpty()) {
+            for (String key : healedKeys) {
+                // 1. Xóa khỏi phòng cách ly
+                redisTemplate.opsForZSet().remove(API_KEY_COOLDOWN, key);
+
+                // 2. Trả lại thẻ xanh, đưa về Pool chính với điểm = 0 (Rảnh rỗi nhất)
+                redisTemplate.opsForZSet().add(API_KEY_POOL, key, 0);
+
+                log.info("Đã TỰ ĐỘNG HỒI SINH API Key: [{}] sau khi hết hạn phạt 429", maskApiKey(key));
+            }
+        }
+    }
+
 }
