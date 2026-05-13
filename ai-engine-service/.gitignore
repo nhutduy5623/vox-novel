@@ -34,7 +34,7 @@ build/
 
 # Config & Secrets
 .env
-
+**/application.yaml
 
 # Docker & OS
 .DS_Store

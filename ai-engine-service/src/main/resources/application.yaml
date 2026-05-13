@@ -11,7 +11,7 @@ spring:
   ai:
     google:
       genai:
-        api-key: key1
+        api-key: 1
 
 # Tắt tạm logging rác của các thư viện, chỉ hiện log của thư mục com.voxnovel (thay bằng package name của bạn)
 logging:
@@ -20,4 +20,4 @@ logging:
 # Khai báo danh sách các Key (Lấy từ biến môi trường)
 vox-novel:
   ai-engine-service:
-    keys:  key1, key2, key3
+    keys:  1, 2, 3

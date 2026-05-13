@@ -56,16 +56,23 @@ public class LlmGenerationService {
     }
 
     public List<ScriptLine> generateChunkScript(String textChunk, String previousContext, List<CharacterInfo> characters) {
-        // 1. Gọi Redis xin cái Key rảnh nhất
-        String bestKey = aiKeyPoolService.getOptimalApiKey();
-        log.info("Đang dùng Key [{}] để xử lý...", maskApiKey(bestKey));
-
-        try {
-            // 2. Bốc đúng cái ChatClient đang ngậm Key đó ra xài
+        int maxRetries = apiKeys.size();
+        Exception lastException = null;
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            String bestKey = aiKeyPoolService.getOptimalApiKey(); // 1. Gọi Redis xin cái Key rảnh nhất
+            if (bestKey == null) {
+                throw new RuntimeException("Hệ thống đã cạn kiệt API Key khả dụng!");
+            }
+            log.info("Đang dùng Key [{}] để xử lý...", maskApiKey(bestKey));
+            // 2. Kiểm tra xem Key này có ChatClient tương ứng không
             ChatClient activeClient = chatClientPool.get(bestKey);
+            if (activeClient == null) {
+                log.warn("Key [{}] là Key ảo hoặc đã bị xóa. Tiến hành cách ly!", maskApiKey(bestKey));
+                aiKeyPoolService.markKeyAsDead(bestKey); // Hàm mới cần thêm
+                continue; // Bỏ qua, quay lại đầu vòng lặp bốc key khác
+            }
 
             var outputConverter = new BeanOutputConverter<>(new ParameterizedTypeReference<List<ScriptLine>>() {});
-
             String systemPrompt = """
                 Bạn là một chuyên gia biên kịch âm thanh. Nhiệm vụ của bạn là phân vai đoạn truyện thành kịch bản audio.
                 
@@ -86,28 +93,34 @@ public class LlmGenerationService {
                 4. YÊU CẦU CHIA NHỎ DÒNG: Mỗi câu thoại hoặc tiếng hô của Quần chúng PHẢI nằm trên một dòng riêng biệt với cùng một ID char_mob_04. Tuyệt đối không gộp các câu bàn tán khác nhau vào cùng một trường text.
                 {format}
             """;
-
-            // 3. Dùng activeClient để gọi AI
-            return activeClient.prompt()
-                    .system(sp -> sp.text(systemPrompt)
-                            .param("character_list", characters.toString())
-                            .param("previous_context", previousContext != null ? previousContext : "Không có ngữ cảnh trước.")
-                            .param("format", outputConverter.getFormat()))
-                    .user(textChunk)
-                    .options(GoogleGenAiChatOptions.builder()
-                            .model("gemini-3-flash-preview")
-                            .temperature(0.3)
-                            .build())
-                    .call()
-                    .entity(outputConverter);
-
-        } catch (Exception e) {
-            log.error("Lỗi khi AI xử lý Chunk.", e);
-            throw new RuntimeException("Lỗi sinh kịch bản AI: " + e.getMessage());
-        } finally {
-            // 4. LUÔN LUÔN trả Key về Redis, nếu không hệ thống sẽ kẹt cứng
-            aiKeyPoolService.releaseApiKey(bestKey);
+            try {
+                // 3. Dùng activeClient để gọi AI
+                List<ScriptLine> result = activeClient.prompt()
+                        .system(sp -> sp.text(systemPrompt)
+                                .param("character_list", characters.toString())
+                                .param("previous_context", previousContext != null ? previousContext : "Không có ngữ cảnh trước.")
+                                .param("format", outputConverter.getFormat()))
+                        .user(textChunk)
+                        .options(GoogleGenAiChatOptions.builder()
+                                .model("gemini-3-flash-preview")
+                                .temperature(0.3)
+                                .build())
+                        .call()
+                        .entity(outputConverter);
+                // 4. THÀNH CÔNG: Trả Key về Redis và kết thúc
+                aiKeyPoolService.releaseApiKey(bestKey);
+                return result;
+            } catch (Exception e) {
+                lastException = e;
+                log.error("Key [{}] gãy cánh! Lỗi: {}", maskApiKey(bestKey), e.getMessage());
+                // 5. THẤT BẠI: Đánh dấu Key này bị lỗi (khóa tạm thời hoặc xóa)
+                // KHÔNG gọi releaseApiKey ở đây nữa, vì ta không muốn người khác bốc phải Key rác này
+                aiKeyPoolService.reportErrorKey(bestKey);
+            }
         }
+        // 6. Nếu chạy hết vòng lặp mà vẫn tới đây, tức là mọi Key đều chết
+        log.error("Toàn bộ {} API Keys đều đã thất bại!", maxRetries);
+        throw new RuntimeException("Lỗi sinh kịch bản AI sau nhiều lần thử: " + lastException.getMessage());
     }
 
     // Hàm tiện ích che mờ Key khi in log (Security)

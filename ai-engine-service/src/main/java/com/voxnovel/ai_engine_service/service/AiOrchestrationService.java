@@ -73,6 +73,7 @@ public class AiOrchestrationService {
         log.info("Hoàn tất! Tổng cộng: {} dòng kịch bản.", allLines.size());
 
         return AiScriptResponse.builder()
+                .novelId(request.getNovelId())
                 .chapterId(request.getChapterId())
                 .status("SUCCESS")
                 .scriptLines(allLines)
