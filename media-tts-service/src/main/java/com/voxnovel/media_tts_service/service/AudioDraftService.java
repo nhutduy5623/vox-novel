@@ -103,40 +103,49 @@ public class AudioDraftService {
         result.setSequence(line.getSequence());
         result.setCharacterId(line.getCharacterId());
 
-        String currentPool = null;
-        String assignedKey = null;
+        String providerCode = line.getProvider().toUpperCase();
+        TtsProviderStrategy ttsStrategy = ttsStrategyMap.get(providerCode);
 
-        try {
-            String providerCode = line.getProvider().toUpperCase();
-            TtsProviderStrategy ttsStrategy = ttsStrategyMap.get(providerCode);
-
-            if (ttsStrategy == null) {
-                throw new IllegalArgumentException("Chưa hỗ trợ: " + providerCode);
-            }
-
-            // Xin Key từ Redis (Redis đơn luồng nên 5 thread vào xin cùng lúc vẫn không bao giờ đụng nhau)
-            currentPool = ttsStrategy.getRedisPoolName();
-            assignedKey = apiKeyPoolService.getOptimalApiKey(currentPool);
-
-            // Gọi API
-            byte[] audioData = ttsStrategy.generateAudio(line.getText(), line.getVoiceId(), assignedKey);
-
-            // Upload MinIO
-            String objectKey = String.format("drafts/%s/%s/%03d_%s.mp3",
-                    request.getNovelId(), request.getChapterId(), line.getSequence(), line.getCharacterId());
-            String fileUrl = minioService.uploadAudioBytes(objectKey, audioData);
-
-            result.setAudioUrl(fileUrl);
-            result.setStatus("SUCCESS");
-
-        } catch (Exception e) {
-            log.error("Lỗi tại sequence {}: {}", line.getSequence(), e.getMessage());
+        if (ttsStrategy == null) {
+            log.error("Chưa hỗ trợ Provider: {}", providerCode);
             result.setStatus("FAILED");
-        } finally {
-            // Trả Key lại cho Redis để thằng Thread khác lấy xài
-            if (assignedKey != null && currentPool != null) {
-                apiKeyPoolService.releaseApiKey(currentPool, assignedKey);
+            return result;
+        }
+
+        String currentPool = ApiKeyPoolService.POOL_PREFIX + providerCode.toLowerCase();
+        int maxRetries = 3;
+        boolean isSuccess = false;
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            String assignedKey = apiKeyPoolService.getOptimalApiKey(currentPool);
+            if (assignedKey == null) {
+                log.error("Sequence {} cạn kiệt Key. Phải dừng lại ở lần thử thứ {}.", line.getSequence(), attempt);
+                break;
             }
+            try {
+                // Gọi API
+                // Tầng Strategy sẽ ném Exception nếu gặp 429 hoặc 401
+                byte[] audioData = ttsStrategy.generateAudio(line.getText(), line.getVoiceId(), assignedKey);
+
+                // Upload MinIO
+                String objectKey = String.format("drafts/%s/%s/%06d_%s.mp3",
+                        request.getNovelId(), request.getChapterId(), line.getSequence(), line.getCharacterId());
+                String fileUrl = minioService.uploadAudioBytes(objectKey, audioData);
+
+                result.setAudioUrl(fileUrl);
+                result.setStatus("SUCCESS");
+                isSuccess = true;
+
+                // CHỈ THÀNH CÔNG MỚI TRẢ KEY LẠI VÀO POOL HOẠT ĐỘNG
+                apiKeyPoolService.releaseApiKey(currentPool, assignedKey);
+                break;
+            } catch (Exception e) {
+                log.warn("Sequence {} - Lần thử {} thất bại. Lỗi: {}", line.getSequence(), attempt, e.getMessage());
+                // Không gọi releaseApiKey ở đây để tránh hồi sinh Key đang bị cách ly
+            }
+        }
+        if (!isSuccess) {
+            result.setStatus("FAILED");
+            log.error("Sequence {} thất bại hoàn toàn sau {} lần thử.", line.getSequence(), maxRetries);
         }
         return result;
     }

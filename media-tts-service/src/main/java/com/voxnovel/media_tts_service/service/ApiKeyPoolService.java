@@ -7,10 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.data.redis.core.script.RedisScript;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -22,6 +24,8 @@ public class ApiKeyPoolService {
 
     // Đặt chung một tiền tố cho tất cả các Pool
     public static final String POOL_PREFIX = "media_tts:api_keys_pool:";
+    // Hậu tố cho phòng cách ly
+    public static final String COOLDOWN_SUFFIX = "media_tts:api_keys_cooldown";
 
     // KỊCH BẢN LUA CỐT LÕI (Không thay đổi)
     private static final String GET_KEY_SCRIPT =
@@ -80,6 +84,60 @@ public class ApiKeyPoolService {
             redisTemplate.opsForZSet().incrementScore(poolName, apiKey, -1);
             log.info("Đã trả lại Key về pool [{}]: [{}] - Đã -1 điểm bận rộn.", poolName, maskApiKey(apiKey));
         }
+    }
+
+    /**
+            * PHẠT THẺ VÀNG (Lỗi 429 - Rate Limit): Cách ly 60 giây
+     */
+    public void reportYellowCard(String poolName, String apiKey) {
+        if (apiKey != null) {
+            String cooldownPool = poolName + COOLDOWN_SUFFIX;
+
+            // 1. Xóa khỏi Pool đang hoạt động
+            redisTemplate.opsForZSet().remove(poolName, apiKey);
+
+            // 2. Tống vào phòng cách ly (Score là thời gian được thả)
+            long unlockTime = System.currentTimeMillis() + 60000;
+            redisTemplate.opsForZSet().add(cooldownPool, apiKey, unlockTime);
+
+            log.warn("🟨 THẺ VÀNG [{}]: Key [{}] bị Rate Limit. Cách ly 60s!", poolName, maskApiKey(apiKey));
+        }
+    }
+
+    /**
+     * PHẠT THẺ ĐỎ (Lỗi 401/403): Xóa vĩnh viễn
+     */
+    public void reportRedCard(String poolName, String apiKey) {
+        if (apiKey != null) {
+            redisTemplate.opsForZSet().remove(poolName, apiKey);
+            log.error("🟥 THẺ ĐỎ [{}]: Key [{}] Ảo hoặc Hết Hạn. ĐÃ TIÊU HỦY!", poolName, maskApiKey(apiKey));
+        }
+    }
+
+    /**
+     * BÁC SĨ ĐI TUẦN (Chạy ngầm mỗi 10 giây)
+     * Quét động qua tất cả các Provider có trong file properties.
+     */
+    @Scheduled(fixedRate = 10000)
+    public void autoHealRateLimitedKeys() {
+        long now = System.currentTimeMillis();
+
+        ttsProperties.getProviders().forEach((providerName, config) -> {
+            String activePool = POOL_PREFIX + providerName.toLowerCase();
+            String cooldownPool = activePool + COOLDOWN_SUFFIX;
+
+            Set<String> healedKeys = redisTemplate.opsForZSet().rangeByScore(cooldownPool, 0, now);
+
+            if (healedKeys != null && !healedKeys.isEmpty()) {
+                for (String key : healedKeys) {
+                    // Xóa khỏi cách ly
+                    redisTemplate.opsForZSet().remove(cooldownPool, key);
+                    // Trả lại Pool chính với điểm 0
+                    redisTemplate.opsForZSet().add(activePool, key, 0);
+                    log.info("🟩 HỒI SINH [{}]: Key [{}] đã mãn hạn cách ly, trở lại đường đua!", activePool, maskApiKey(key));
+                }
+            }
+        });
     }
 
     private String maskApiKey(String key) {
