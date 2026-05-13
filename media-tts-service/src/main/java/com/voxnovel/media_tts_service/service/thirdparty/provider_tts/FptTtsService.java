@@ -33,7 +33,7 @@ public class FptTtsService implements TtsProviderStrategy{
                     .uri(FPT_API_URL)
                     .header("api_key", apiKey)
                     .header("voice", voiceId.trim()) // Ví dụ: banmai, leminh
-                    .header("speed", "1")            // Giữ tốc độ chuẩn
+                    .header("speed", "0.5")            // Giữ tốc độ chuẩn
                     .header("format", "mp3")         // Ép định dạng chuẩn mp3
                     .contentType(MediaType.valueOf("text/plain; charset=utf-8")) // Tài liệu ghi truyền Raw data (-d)
                     .body(text.getBytes(java.nio.charset.StandardCharsets.UTF_8))
