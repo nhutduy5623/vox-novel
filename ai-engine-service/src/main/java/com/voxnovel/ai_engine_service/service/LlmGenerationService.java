@@ -55,7 +55,7 @@ public class LlmGenerationService {
         }
     }
 
-    public List<ScriptLine> generateChunkScript(String textChunk, String previousContext, List<CharacterInfo> characters) {
+    public List<ScriptLine> generateChunkScript(String textChunk, String previousContext, String nextContext, List<CharacterInfo> characters) {
         int maxRetries = apiKeys.size();
         Exception lastException = null;
         for (int attempt = 1; attempt <= maxRetries; attempt++) {
@@ -68,7 +68,7 @@ public class LlmGenerationService {
             ChatClient activeClient = chatClientPool.get(bestKey);
             if (activeClient == null) {
                 log.warn("Key [{}] là Key ảo hoặc đã bị xóa. Tiến hành cách ly!", maskApiKey(bestKey));
-                aiKeyPoolService.markKeyAsDead(bestKey); // Hàm mới cần thêm
+//                aiKeyPoolService.markKeyAsDead(bestKey); // Hàm mới cần thêm
                 continue; // Bỏ qua, quay lại đầu vòng lặp bốc key khác
             }
 
@@ -78,16 +78,17 @@ public class LlmGenerationService {
                 
                 Danh sách nhân vật hiện có: {character_list}
                 
-                [NGỮ CẢNH THAM KHẢO]
-                Đây là phần cuối của đoạn truyện trước. CHỈ dùng để hiểu bối cảnh và suy luận nhân vật (ví dụ: ai đang nói, 'hắn/y' là ai).
+                [NGỮ CẢNH PHÍA TRƯỚC] Đây là phần cuối của đoạn truyện trước. CHỈ dùng để hiểu bối cảnh và suy luận nhân vật (ví dụ: ai đang nói, 'hắn/y' là ai).
                 TUYỆT ĐỐI KHÔNG trích xuất hay phân vai phần này vào kết quả JSON:
-                \"\"\"{previous_context}\"\"\"
+                \"\"\"{previous_context}\"\"\"                
+                [NGỮ CẢNH PHÍA SAU] Chỉ để dự đoán nhân vật đang nói, TUYỆT ĐỐI KHÔNG xuất ra JSON:
+                \\"\\"\\"{next_context}\\"\\"\\"
                 
                 [NỘI DUNG CẦN PHÂN VAI]
                 Chỉ phân tích và trả về kịch bản cho đoạn văn bản dưới đây:
                 
                 QUY TẮC SỐNG CÒN:
-                1. Chỉ lấy text từ phần [NỘI DUNG CẦN PHÂN VAI]. Bỏ qua hoàn toàn text ở phần [NGỮ CẢNH THAM KHẢO].
+                1. Chỉ lấy text từ phần [NỘI DUNG CẦN PHÂN VAI]. Bỏ qua hoàn toàn text ở phần [NGỮ CẢNH PHÍA TRƯỚC] và [NGỮ CẢNH PHÍA SAU].
                 2. KHÔNG được tự bịa ra characterId không có trong danh sách.
                 3. Toàn bộ miêu tả khung cảnh, nội tâm phải gán cho Người Dẫn Truyện (isNarrator = true).
                 4. YÊU CẦU CHIA NHỎ DÒNG: Mỗi câu thoại hoặc tiếng hô của Quần chúng PHẢI nằm trên một dòng riêng biệt với cùng một ID char_mob_04. Tuyệt đối không gộp các câu bàn tán khác nhau vào cùng một trường text.
@@ -98,7 +99,8 @@ public class LlmGenerationService {
                 List<ScriptLine> result = activeClient.prompt()
                         .system(sp -> sp.text(systemPrompt)
                                 .param("character_list", characters.toString())
-                                .param("previous_context", previousContext != null ? previousContext : "Không có ngữ cảnh trước.")
+                                .param("previous_context", previousContext != null ? previousContext : "Không có ngữ cảnh trước.") //Cần thêm ngữ cảnh ở sau.
+                                .param("next_context", nextContext != null && !nextContext.isEmpty() ? nextContext : "Không có ngữ cảnh sau.")
                                 .param("format", outputConverter.getFormat()))
                         .user(textChunk)
                         .options(GoogleGenAiChatOptions.builder()
@@ -120,7 +122,7 @@ public class LlmGenerationService {
         }
         // 6. Nếu chạy hết vòng lặp mà vẫn tới đây, tức là mọi Key đều chết
         log.error("Toàn bộ {} API Keys đều đã thất bại!", maxRetries);
-        throw new RuntimeException("Lỗi sinh kịch bản AI sau nhiều lần thử: " + lastException.getMessage());
+        throw new RuntimeException("Lỗi sinh kịch bản AI sau nhiều lần thử: ");
     }
 
     // Hàm tiện ích che mờ Key khi in log (Security)

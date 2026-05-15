@@ -17,22 +17,21 @@ public class AiScriptResultListener {
 
     private final ChapterRepository chapterRepository;
 
-    @RabbitListener(queues = "ai.script.result.queue")
+    @RabbitListener(queues = "ai.script.generate.response.queue")
     @Transactional
-    public void handleScriptResult(AiScriptResultMessage message) {
+    public void handleScriptResult(AiScriptResultMessage response) {
         try {
-            log.info("Core Content nhận được kịch bản từ AI Engine: {}", message.getResult().getChapterId());
-            AiScriptResultMessage.Result result = message.getResult();
-            Long chapterId = Long.valueOf(result.getChapterId());
+            log.info("Core Content nhận được kịch bản từ AI Engine: {}", response.getChapterId());
+            Long chapterId = Long.valueOf(response.getChapterId());
 
             // 2. Tìm Chapter trong Database
             Chapter chapter = chapterRepository.findById(chapterId)
                     .orElseThrow(() -> new RuntimeException("Không tìm thấy Chapter ID: " + chapterId));
 
             // 3. Xử lý lưu trữ
-            if ("SUCCESS".equals(result.getStatus())) {
+            if ("SUCCESS".equals(response.getStatus())) {
                 // Nhét thẳng List<ScriptLineDto> vào entity, Hibernate 6 sẽ tự động parse ra JSON rắc vào PostgreSQL
-                chapter.setScriptData(result.getScriptLines());
+                chapter.setScriptData(response.getScriptLines());
                 // Đổi trạng thái sang REVIEWING để Client biết vào xem và sửa lỗi
                 chapter.setStatus(ChapterStatus.REVIEWING);
                 log.info("✅ Lưu kịch bản thành công cho Chapter {}", chapterId);

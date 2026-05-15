@@ -1,0 +1,55 @@
+#services:
+#  # 1. Cơ sở dữ liệu chính: PostgreSQL
+#  postgres:
+#    image: postgres:15-alpine
+#    container_name: vox-postgres
+#    environment:
+#      POSTGRES_USER: vox_admin
+#      POSTGRES_PASSWORD: vox_password_123
+#      POSTGRES_DB: vox_core_db
+#    ports:
+#      - "5432:5432"
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#    restart: unless-stopped
+#
+#  # 2. Hàng đợi tin nhắn: RabbitMQ (kèm giao diện quản lý)
+#  rabbitmq:
+#    image: rabbitmq:3-management-alpine
+#    container_name: vox-rabbitmq
+#    environment:
+#      RABBITMQ_DEFAULT_USER: guest
+#      RABBITMQ_DEFAULT_PASS: guest
+#    ports:
+#      - "5672:5672"   # Port để Spring Boot kết nối
+#      - "15672:15672" # Port giao diện web quản lý (http://localhost:15672)
+#    restart: unless-stopped
+
+  # 3. Bộ nhớ đệm: Redis (để lưu trạng thái Key rảnh rỗi)
+  # Redis: Dùng cho Distributed Lock và Load Balancer API Key
+#  redis:
+#    image: redis:7-alpine
+#    container_name: voxnovel-redis
+#    ports:
+#      - "6379:6379"
+#    restart: always
+
+  # 4. Lưu trữ Audio: MinIO (Giả lập AWS S3)
+#  minio:
+#    image: quay.io/minio/minio
+#    container_name: vox-minio
+#    environment:
+#      MINIO_ROOT_USER: minio_admin
+#      MINIO_ROOT_PASSWORD: minio_password_123
+#    command: server /data --console-address ":9001"
+#    ports:
+#      - "9000:9000" # Port API (Spring Boot gọi)
+#      - "9001:9001" # Port giao diện web (http://localhost:9001)
+#    volumes:
+#      - minio_data:/data
+#    restart: unless-stopped
+
+## Khai báo volumes để dữ liệu không bị mất khi tắt Docker
+#volumes:
+#  postgres_data:
+#  minio_data:

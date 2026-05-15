@@ -12,7 +12,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AiScriptResponse {
-    private String novelId;
     private String chapterId;
     // Các trạng thái khác ("PARTIAL_SUCCESS", "RATE_LIMITED"...)
     private String status;

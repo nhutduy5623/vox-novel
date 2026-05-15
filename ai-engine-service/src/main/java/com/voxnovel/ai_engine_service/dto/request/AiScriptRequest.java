@@ -12,7 +12,6 @@ import java.util.List;
 @AllArgsConstructor
 public class AiScriptRequest {
     private String chapterId;
-    private String novelId;
     private String chapterText;            // Chứa toàn bộ nội dung thô cần phân vai
     private List<CharacterInfo> characters; // Danh sách nhân vật có trong chương này
 }

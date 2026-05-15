@@ -21,3 +21,16 @@ logging:
 vox-novel:
   ai-engine-service:
     keys:  1, 2, 3
+
+rabbitmq:
+  exchange: ai.exchange
+  routing:
+    request: ai.script.request
+    response: ai.script.response
+  queue:
+    request: ai.script.generate.request.queue
+    response: ai.script.generate.response.queue
+
+feign:
+  core-content-service:
+    url: http://localhost:8082
