@@ -1,0 +1,36 @@
+Provider
+    code         name         type
+    CAMBAI       CambAI       TTS
+    FPT          FPT          TTS
+    GEMINI       Gemini       LLM
+
+Voice
+    providerId         providerVoiceId          name                                          gender          language         previewUrl
+    1                  leminh                   Nam giọng dẫn truyện mặc định                      nam             vi
+    1                  banmai                   Nữ giọng dẫn truyện mặc định
+    2                  170523                   Nam nghiêm túc, 30t
+    2                  170477                   Nam, từ tốn, rõ chữ, bình tĩnh, 28t
+    2                  170468                   Nữ trẻ, ngọt, 24t. (Ninh Diêu)
+    2                  170452                   Nữ ngọt, trẻ, diệu dàng (Thương Tâm Từ)
+    2                  170459                   Nữ hơi đanh đá
+    2                  170523                   Nam nghiêm túc, hơi khàn, 45t.
+    2                  147324                   Nam trẻ con, 14t
+    2                  147342                   Nữ trẻ, 14t
+    2                  165326                   Nam, quan sát, chậm rãi, 55t
+    2                  170455                   Nữ giọng đọc tự tin, tự nhiên, 25t.
+    2                  170458                   Nữ trẻ trung, tự tin, 25t.
+    2                  170621                   Nữ ngọt, lười biến, 25t.
+    2                  170485                   Nữ danh đá, khó chịu chửi nhau, 40t.
+    2                  170498                   Nữ trẻ, năng lượng, bạn nữ chính, (Sonoko, Kazuha).
+    2                  170534                   Nam, chính chắn, trưởng thành (Vua nhẹ nhàng)
+    2                  147332                   Nam, trầm, sâu lắng (ngụy vương, vua)
+    2                  170479                   Nữ, chậm chạp, 50t.
+    2                  147334                   Nam, rề rà, trẻ, ma đầu quái dị
+    2                  170512                   Nam, trưởng thành, cao nhân, nghiêm túc, 50t.
+    2                  147474                   Nam, trưởng thành, quân tử, hiên ngang, 30t.
+    2                  170549                   Nam, nghiêm túc, hơi chậm, khàn, chính chực, 55t.
+    2                  170544                   Nam, giọng nguy hiểm, ngôn từ ẩn ý, sâu sắc, 35t.
+    2                  170526                   Nam, giọng nhanh, rõ, 28t.
+    2                  170498                   Nữ, nhanh, năng động, tiểu thư khôn lanh,chanh chua, 20t.
+    2                  147325                   Nam, khá giống nam chính.
+    2                  170585                   Nam, già, chậm rãi, mạnh mẽ, 80t.
