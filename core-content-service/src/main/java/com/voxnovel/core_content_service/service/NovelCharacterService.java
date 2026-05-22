@@ -5,6 +5,7 @@ import com.voxnovel.core_content_service.dto.response.NovelCharacterResponse;
 import com.voxnovel.core_content_service.entity.Novel;
 import com.voxnovel.core_content_service.entity.NovelCharacter;
 import com.voxnovel.core_content_service.entity.Voice;
+import com.voxnovel.core_content_service.exception.ResourceNotFoundException;
 import com.voxnovel.core_content_service.mapper.NovelCharacterMapper;
 import com.voxnovel.core_content_service.repository.NovelCharacterRepository;
 import com.voxnovel.core_content_service.repository.NovelRepository;
@@ -30,7 +31,8 @@ public class NovelCharacterService {
     @Transactional
     public NovelCharacterResponse createCharacter(CreateCharacterRequest request) {
         Novel novel = novelRepository.findById(request.getNovelId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy truyện với ID: " + request.getNovelId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy truyện với ID: " + request.getNovelId()));
 
         NovelCharacter character = characterMapper.toEntity(request);
         character.setNovel(novel);
@@ -48,7 +50,7 @@ public class NovelCharacterService {
     @Transactional
     public NovelCharacterResponse updateCharacter(Long id, CreateCharacterRequest request) {
         NovelCharacter character = characterRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân vật với ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy nhân vật với ID: " + id));
 
         // Cập nhật các trường cơ bản
         character.setName(request.getName());
@@ -66,16 +68,33 @@ public class NovelCharacterService {
         return characterMapper.toResponse(characterRepository.save(character));
     }
 
+    @Transactional(readOnly = true)
     public List<NovelCharacterResponse> getAllByNovel(Long novelId) {
-//       findByNovelId vào Repository
-         return characterRepository.findByNovelId(novelId).stream()
-                 .map(characterMapper::toResponse)
-                 .collect(Collectors.toList());
+        if (!novelRepository.existsById(novelId)) {
+            throw new ResourceNotFoundException("Không tìm thấy truyện với ID: " + novelId);
+        }
+        return characterRepository.findByNovelId(novelId).stream()
+                .map(characterMapper::toResponse)
+                .collect(Collectors.toList());
+    }
 
-        // Hiện tại dùng tạm findAll
-//        return characterRepository.findAll().stream()
-//                .map(characterMapper::toResponse)
-//                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public List<NovelCharacterResponse> searchCharacters(Long novelId, String name) {
+        if (!novelRepository.existsById(novelId)) {
+            throw new ResourceNotFoundException("Không tìm thấy truyện với ID: " + novelId);
+        }
+        String keyword = normalizeKeyword(name);
+        return characterRepository.searchByNovelIdAndName(novelId, keyword).stream()
+                .map(characterMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    private String normalizeKeyword(String keyword) {
+        if (keyword == null) {
+            return null;
+        }
+        String trimmed = keyword.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     public void deleteCharacter(Long id) {

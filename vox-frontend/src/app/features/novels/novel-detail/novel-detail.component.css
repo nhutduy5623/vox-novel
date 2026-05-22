@@ -1,0 +1,287 @@
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.detail-title {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.cover {
+  width: 72px;
+  height: 102px;
+  object-fit: cover;
+  border-radius: 0.375rem;
+  border: 1px solid var(--border);
+}
+
+.detail-title h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.detail-title p {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meta {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.detail-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  padding: 1.25rem;
+}
+
+.info-grid h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.info-grid p {
+  margin: 0;
+}
+
+.info-grid dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 1rem;
+  font-size: 0.9rem;
+}
+
+.info-grid dt {
+  color: var(--text-muted);
+}
+
+.info-grid dd {
+  margin: 0;
+}
+
+.chapters-section {
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.section-head h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  background: var(--surface-muted);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.row-clickable {
+  cursor: pointer;
+}
+
+.row-clickable:hover {
+  background: var(--surface-hover);
+}
+
+.col-actions {
+  white-space: nowrap;
+}
+
+.hint {
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem;
+}
+
+.characters-section {
+  padding: 1.25rem;
+}
+
+.section-head-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.char-card {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.char-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.char-card strong {
+  display: block;
+  font-size: 0.95rem;
+}
+
+.voice {
+  font-size: 0.8rem;
+  color: var(--primary);
+}
+
+.char-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.btn-icon-play {
+  min-width: 2rem;
+  padding-inline: 0.5rem;
+  flex-shrink: 0;
+}
+
+.simple-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.simple-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.simple-list li:last-child {
+  border-bottom: none;
+}
+
+.badge-sm {
+  font-size: 0.7rem;
+}
+
+.muted {
+  color: var(--text-muted);
+}
+
+.state {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.badge[data-status='DRAFT'] {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.badge[data-status='ONGOING'] {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge[data-status='COMPLETED'] {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge[data-status='PAUSED'] {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.badge-sm[data-status='DRAFT'] {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.badge-sm[data-status='PROCESSING_AI'] {
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.badge-sm[data-status='REVIEWING'] {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge-sm[data-status='PUBLISHED'] {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge-sm[data-status='FAILED'] {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+@media (max-width: 768px) {
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+}

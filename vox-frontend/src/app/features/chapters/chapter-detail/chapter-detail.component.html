@@ -1,0 +1,308 @@
+<div class="page">
+  <a [routerLink]="['/admin/novels', novelId]" class="back-link">← Chi tiết truyện</a>
+
+  @if (loading && !chapter) {
+    <div class="state">Đang tải...</div>
+  } @else if (errorMessage && !chapter) {
+    <div class="alert alert-error">{{ errorMessage }}</div>
+  } @else if (chapter) {
+    <header class="chapter-header card">
+      <div>
+        <h1>Chương {{ chapter.chapterNumber }}: {{ chapter.title }}</h1>
+        <p class="meta">
+          <span class="badge" [attr.data-status]="chapter.status">{{ statusLabel(chapter.status) }}</span>
+          ID {{ chapter.id }} · {{ chapter.createdBy ?? '—' }}
+          @if (chapter.hasAudio) {
+            · <span class="tag-ok">Có audio</span>
+          }
+        </p>
+        <p class="meta">
+          Tạo: {{ chapter.createdAt ? (chapter.createdAt | date: 'dd/MM/yyyy HH:mm') : '—' }}
+          · Cập nhật: {{ chapter.updatedAt ? (chapter.updatedAt | date: 'dd/MM/yyyy HH:mm') : '—' }}
+        </p>
+      </div>
+      <div class="header-actions">
+        <button
+          type="button"
+          class="btn btn-secondary btn-sm"
+          [disabled]="!hasChapterAudio"
+          (click)="playChapterAudio()"
+          title="Phát audio đã ghép của chương"
+        >
+          ▶ Nghe audio chương
+        </button>
+        <button type="button" class="btn btn-secondary btn-sm" (click)="loadChapter()">Tải lại</button>
+      </div>
+    </header>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">{{ errorMessage }}</div>
+    }
+    @if (infoMessage) {
+      <div class="alert alert-info">{{ infoMessage }}</div>
+    }
+    @if (generatingScript) {
+      <div class="alert alert-info banner-pulse">Đang tạo kịch bản phân vai... Hệ thống đang xử lý.</div>
+    }
+
+    <section class="card characters-section">
+      <div class="section-head">
+        <h2>Nhân vật chương ({{ characters.length }})</h2>
+        <div class="section-head-actions">
+          <app-character-ai-menu
+            [novelId]="novelId"
+            [originalContent]="chapter.originalContent"
+          />
+          <button type="button" class="btn btn-primary btn-sm" (click)="openAssignCharacters()">
+            + Gán từ truyện
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="openCharacterJsonImport()">
+            + JSON (mới)
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="openCreateCharacter()">
+            + Tạo mới
+          </button>
+        </div>
+      </div>
+      @if (characters.length === 0) {
+        <p class="muted">Chưa có nhân vật trong chương. Gán từ truyện hoặc tạo mới trước khi chạy AI.</p>
+      } @else {
+        <div class="char-grid">
+          @for (c of characters; track c.id) {
+            <div class="char-card">
+              <div class="char-card-top">
+                <div>
+                  <strong>{{ c.name }}</strong>
+                  <span class="muted">{{ c.gender ?? '—' }}</span>
+                  <span class="voice">{{ c.defaultVoiceName ?? 'Chưa gán giọng' }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm btn-icon-play"
+                  (click)="playCharacterVoice(c, $event)"
+                  [disabled]="!characterPreviewUrl(c)"
+                  title="Nghe thử giọng nhân vật"
+                  aria-label="Nghe giọng"
+                >
+                  ▶
+                </button>
+              </div>
+              <div class="char-actions">
+                <button type="button" class="btn btn-ghost btn-sm" (click)="openEditCharacter(c, $event)">Sửa</button>
+                <button type="button" class="btn btn-danger-ghost btn-sm" (click)="confirmUnassignCharacter(c)">
+                  Gỡ
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="card content-section">
+      <div class="tabs">
+        <button
+          type="button"
+          class="tab"
+          [class.active]="contentTab === 'original'"
+          (click)="setTab('original')"
+        >
+          Nội dung thuần
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.active]="contentTab === 'script'"
+          (click)="setTab('script')"
+        >
+          Kịch bản phân vai
+          @if (scriptLines.length) {
+            <span class="tab-count">{{ scriptLines.length }}</span>
+          }
+        </button>
+      </div>
+
+      @if (contentTab === 'original') {
+        <div class="original-box">
+          <pre>{{ chapter.originalContent }}</pre>
+        </div>
+      } @else {
+        <div class="script-toolbar">
+          <button
+            type="button"
+            class="btn btn-primary btn-sm"
+            [disabled]="generatingScript || characters.length === 0"
+            (click)="openGenerateScriptDialog()"
+          >
+            {{ generatingScript ? 'Đang tạo...' : 'Tạo kịch bản AI' }}
+          </button>
+          <button type="button" class="btn btn-secondary btn-sm" (click)="openAddScriptLine()" [disabled]="savingScript">
+            + Thêm dòng
+          </button>
+          @if (scriptLines.length > 0) {
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              [disabled]="playingDrafts"
+              (click)="playAllDrafts()"
+            >
+              {{ playingDrafts ? 'Đang phát...' : '▶ Nghe thử' }}
+            </button>
+          }
+          @if (savingScript) {
+            <span class="muted">Đang lưu kịch bản...</span>
+          }
+        </div>
+
+        @if (scriptLines.length === 0) {
+          <p class="muted empty-script">Chưa có kịch bản. Bấm "Tạo kịch bản AI" hoặc thêm dòng thủ công.</p>
+        } @else {
+          <div class="script-list">
+            @for (line of scriptLines; track line.sequence; let i = $index) {
+              <article class="script-line">
+                <div class="line-row">
+                  <div class="line-main">
+                    <span class="seq">#{{ line.sequence }}</span>
+                    <strong class="line-speaker">{{ resolveCharacterName(line.characterId, characters) }}</strong>
+                    @if (line.status) {
+                      <span class="line-status">{{ line.status }}</span>
+                    }
+                    <p class="line-text">{{ line.text }}</p>
+                  </div>
+                  <div class="line-actions">
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm"
+                      (click)="playDraftAudio(line.audioDraftLink)"
+                      [disabled]="!line.audioDraftLink"
+                      title="Nghe nháp"
+                    >
+                      ▶
+                    </button>
+                    <button type="button" class="btn btn-ghost btn-sm" (click)="openEditScriptLine(line)" title="Sửa">
+                      Sửa
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-danger-ghost btn-sm"
+                      (click)="deleteScriptLine(line)"
+                      title="Xóa"
+                    >
+                      Xóa
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-ghost btn-sm"
+                      (click)="regenerateLineAudioPlaceholder()"
+                      title="Tạo lại audio"
+                    >
+                      Tạo lại
+                    </button>
+                  </div>
+                </div>
+              </article>
+
+              <div class="insert-between">
+                <button type="button" class="btn btn-ghost btn-sm insert-btn" (click)="insertScriptLinePlaceholder(i)">
+                  +
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="script-footer-actions">
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              [disabled]="generatingAudio"
+              (click)="generateAudio()"
+            >
+              {{ generatingAudio ? 'Đang tạo...' : 'Tạo audio nháp' }}
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary btn-sm"
+              [disabled]="mergingAudio"
+              (click)="mergeChapterAudio()"
+            >
+              {{ mergingAudio ? 'Đang ghép...' : 'Tạo audio hoàn chỉnh' }}
+            </button>
+          </div>
+        }
+      }
+    </section>
+  }
+</div>
+
+@if (chapter) {
+  <app-character-form-dialog
+    [open]="characterFormOpen"
+    [novelId]="novelId"
+    [character]="editingCharacter"
+    [voices]="voices"
+    [createForChapter]="!editingCharacter"
+    (closed)="onCharacterFormClosed()"
+    (saved)="onCharacterSaved($event)"
+  />
+
+  <app-character-json-dialog
+    [open]="characterJsonOpen"
+    [novelId]="novelId"
+    (closed)="onCharacterJsonClosed()"
+    (imported)="onCharacterJsonImported($event)"
+  />
+
+  <app-assign-chapter-characters-dialog
+    [open]="assignCharactersOpen"
+    [novelId]="novelId"
+    [chapterId]="chapterId"
+    [currentCharacterIds]="chapterCharacterIds"
+    (closed)="onAssignCharactersClosed()"
+    (assigned)="onAssignCharactersDone()"
+  />
+
+  <app-script-line-dialog
+    [open]="scriptLineFormOpen"
+    [line]="editingScriptLine"
+    [characters]="characters"
+    (closed)="onScriptLineFormClosed()"
+    (saved)="onScriptLineSaved($event)"
+  />
+}
+
+@if (generateScriptDialogOpen) {
+  <div
+    class="dialog-backdrop"
+    (click)="$event.target === $event.currentTarget && closeGenerateScriptDialog()"
+    role="presentation"
+  >
+    <div class="dialog" role="dialog" (click)="$event.stopPropagation()">
+      <header class="dialog-header">
+        <h2>Chọn nhân vật cho kịch bản AI</h2>
+        <button type="button" class="btn-icon" (click)="closeGenerateScriptDialog()">×</button>
+      </header>
+      <div class="dialog-body">
+        <p class="muted">Chọn ít nhất một nhân vật tham gia phân vai.</p>
+        <div class="checkbox-list">
+          @for (c of characters; track c.id) {
+            <label class="checkbox-item">
+              <input
+                type="checkbox"
+                [checked]="isCharacterSelected(c.id)"
+                (change)="toggleCharacterForScript(c.id, $any($event.target).checked)"
+              />
+              {{ c.name }}
+              @if (c.defaultVoiceName) {
+                <span class="muted">({{ c.defaultVoiceName }})</span>
+              }
+            </label>
+          }
+        </div>
+      </div>
+      <footer class="dialog-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeGenerateScriptDialog()">Hủy</button>
+        <button type="button" class="btn btn-primary" (click)="submitGenerateScript()">Bắt đầu tạo</button>
+      </footer>
+    </div>
+  </div>
+}

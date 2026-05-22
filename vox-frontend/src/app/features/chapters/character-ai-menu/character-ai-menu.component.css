@@ -1,0 +1,33 @@
+.ai-menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.ai-menu {
+  position: absolute;
+  top: calc(100% + 0.25rem);
+  right: 0;
+  z-index: 50;
+  min-width: 10rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: var(--shadow-lg);
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-menu-item {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.ai-menu-item:hover {
+  background: var(--surface-hover);
+}

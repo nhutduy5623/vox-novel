@@ -4,6 +4,7 @@ import com.voxnovel.core_content_service.dto.request.CreateVoiceRequest;
 import com.voxnovel.core_content_service.dto.response.VoiceResponse;
 import com.voxnovel.core_content_service.entity.Provider;
 import com.voxnovel.core_content_service.entity.Voice;
+import com.voxnovel.core_content_service.exception.ResourceNotFoundException;
 import com.voxnovel.core_content_service.mapper.VoiceMapper;
 import com.voxnovel.core_content_service.repository.ProviderRepository;
 import com.voxnovel.core_content_service.repository.VoiceRepository;
@@ -22,7 +23,8 @@ public class VoiceService {
 
     public VoiceResponse createVoice(CreateVoiceRequest request) {
         Provider provider = providerRepository.findById(request.getProviderId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Provider"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy Provider với ID: " + request.getProviderId()));
 
         Voice voice = voiceMapper.toEntity(request);
         voice.setProvider(provider);
@@ -31,10 +33,11 @@ public class VoiceService {
 
     public VoiceResponse updateVoice(Long id, CreateVoiceRequest request) {
         Voice voice = voiceRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Voice"));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giọng với ID: " + id));
 
         Provider provider = providerRepository.findById(request.getProviderId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Provider"));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Không tìm thấy Provider với ID: " + request.getProviderId()));
 
         voice.setProvider(provider);
         voice.setProviderVoiceId(request.getProviderVoiceId());
@@ -50,8 +53,18 @@ public class VoiceService {
         voiceRepository.deleteById(id);
     }
 
-    public List<VoiceResponse> getAllVoices() {
-        return voiceRepository.findAll().stream()
+    public List<VoiceResponse> getVoices(Long providerId) {
+        if (providerId == null) {
+            return voiceRepository.findAll().stream()
+                    .map(voiceMapper::toResponse)
+                    .collect(Collectors.toList());
+        }
+
+        if (!providerRepository.existsById(providerId)) {
+            throw new ResourceNotFoundException("Không tìm thấy Provider với ID: " + providerId);
+        }
+
+        return voiceRepository.findByProvider_IdOrderByNameAsc(providerId).stream()
                 .map(voiceMapper::toResponse)
                 .collect(Collectors.toList());
     }

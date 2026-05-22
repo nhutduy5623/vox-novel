@@ -15,6 +15,7 @@ public class ChapterResponse {
     private String title;
     private String originalContent;
     private List<ScriptLineDto> scriptData; // Danh sách kịch bản JSON
+    private List<NovelCharacterResponse> characters;
     private String audioUrl;
     private Boolean hasAudio;
     private ChapterStatus status;

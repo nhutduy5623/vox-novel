@@ -54,9 +54,9 @@ public class AudioMergeService {
 
             // 6. Upload file final lên MinIO
             log.info("Uploading final audio to MinIO: {}", finalMinioPath);
-            minioService.uploadFile(finalMinioPath, finalAudioLocalPath.toFile());
+            String audioUrl = minioService.uploadFile(finalMinioPath, finalAudioLocalPath.toFile());
 
-            return finalMinioPath;
+            return audioUrl;
 
         } finally {
             // 6. Clean up

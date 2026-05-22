@@ -1,10 +1,15 @@
 package com.voxnovel.core_content_service.controller;
 
 import com.voxnovel.core_content_service.dto.request.CreateNovelRequest;
+import com.voxnovel.core_content_service.dto.response.ApiResponse;
+import com.voxnovel.core_content_service.dto.response.NovelDetailResponse;
 import com.voxnovel.core_content_service.dto.response.NovelResponse;
 import com.voxnovel.core_content_service.service.NovelService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,32 +23,44 @@ public class NovelController {
     private final NovelService novelService;
 
     @PostMapping
-    public ResponseEntity<NovelResponse> create(@Validated @RequestBody CreateNovelRequest request) {
-        // Sau này sẽ lấy từ Token, hiện tại gán cứng
+    public ApiResponse<NovelResponse> create(@Validated @RequestBody CreateNovelRequest request) {
         String currentUserId = "admin_01";
-        return ResponseEntity.ok(novelService.createNovel(currentUserId, request));
+        return ApiResponse.success(novelService.createNovel(currentUserId, request));
     }
 
     @GetMapping
-    public ResponseEntity<List<NovelResponse>> getAll() {
-        return ResponseEntity.ok(novelService.getAllNovels());
+    public ApiResponse<List<NovelResponse>> getAll() {
+        return ApiResponse.success(novelService.getAllNovels());
+    }
+
+    @GetMapping("/paged")
+    public ApiResponse<Page<NovelResponse>> getPaged(
+            @RequestParam(required = false) String title,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return ApiResponse.success(novelService.searchNovels(title, pageable));
+    }
+
+    @GetMapping("/detail/{novelId}")
+    public ApiResponse<NovelDetailResponse> getDetail(@PathVariable Long novelId) {
+        return ApiResponse.success(novelService.getNovelDetail(novelId));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NovelResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(novelService.getById(id));
+    public ApiResponse<NovelResponse> getById(@PathVariable Long id) {
+        return ApiResponse.success(novelService.getById(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<NovelResponse> update(
+    public ApiResponse<NovelResponse> update(
             @PathVariable Long id,
             @Validated @RequestBody CreateNovelRequest request) {
-        return ResponseEntity.ok(novelService.updateNovel(id, request));
+        return ApiResponse.success(novelService.updateNovel(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> delete(@PathVariable Long id) {
+    public ApiResponse<Void> delete(@PathVariable Long id) {
         novelService.deleteNovel(id);
-        return ResponseEntity.ok("Xóa truyện thành success!");
+        return ApiResponse.successMessage("Xóa truyện thành công!");
     }
 }

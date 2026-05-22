@@ -1,0 +1,25 @@
+@import '../../../shared/styles/dialog.css';
+
+.dialog-wide {
+  width: min(640px, 100%);
+}
+
+.json-input {
+  width: 100%;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.json-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+code {
+  font-size: 0.8rem;
+  background: var(--surface-muted);
+  padding: 0.1rem 0.3rem;
+  border-radius: 0.25rem;
+}

@@ -48,7 +48,7 @@ public class CambAiTtsService implements TtsProviderStrategy {
                 .voiceSettings(CambAiRequest.VoiceSettings.builder()
                         .enhanceReferenceAudioQuality(false)
                         .maintainSourceAccent(false)
-                        .speakingRate(1.2)
+                        .speakingRate(1.1)
                         .build())
                 .build();
 

@@ -15,5 +15,6 @@ public interface ChapterMapper {
     Chapter toEntity(CreateChapterRequest request);
 
     @Mapping(source = "novel.id", target = "novelId")
+    @Mapping(target = "characters", ignore = true)
     ChapterResponse toResponse(Chapter entity);
 }

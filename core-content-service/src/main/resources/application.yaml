@@ -33,7 +33,7 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-# Định nghĩa các hằng số cho RabbitMQ
+# Định nghĩa các hằng số cho RabbitMQ AI Engine
 rabbitmq:
   exchange: ai.exchange
   routing:
@@ -42,3 +42,19 @@ rabbitmq:
   queue:
     request: ai.script.generate.request.queue
     response: ai.script.generate.response.queue
+  media:
+    exchange: media.exchange
+    routing:
+      tts-request: media.tts.request
+      tts-response: media.tts.response
+      merge-request: media.merge.request
+      merge-response: media.merge.response
+    queue:
+      tts-request: media.tts.generate.request.queue
+      tts-response: media.tts.generate.response.queue
+      merge-request: media.merge.request.queue
+      merge-response: media.merge.response.queue
+
+services:
+  media-tts:
+    base-url: http://localhost:8085

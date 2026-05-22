@@ -20,7 +20,7 @@ logging:
 # Khai báo danh sách các Key (Lấy từ biến môi trường)
 vox-novel:
   ai-engine-service:
-    keys:  1, 2, 3
+    keys:  1, 2, 3, 4, 5
 
 rabbitmq:
   exchange: ai.exchange

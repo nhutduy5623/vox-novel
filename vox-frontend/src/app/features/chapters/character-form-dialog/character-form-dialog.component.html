@@ -1,0 +1,70 @@
+@if (open) {
+  <div class="dialog-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="dialog" role="dialog" aria-modal="true">
+      <header class="dialog-header">
+        <h2>{{ dialogTitle }}</h2>
+        <button type="button" class="btn-icon" (click)="close()" [disabled]="saving">×</button>
+      </header>
+
+      <form [formGroup]="form" class="dialog-body">
+        @if (errorMessage) {
+          <div class="alert alert-error">{{ errorMessage }}</div>
+        }
+
+        <label class="field">
+          <span>Tên nhân vật <em>*</em></span>
+          <input type="text" formControlName="name" />
+        </label>
+
+        <label class="field">
+          <span>Giới tính</span>
+          <select formControlName="gender">
+            @for (g of genderOptions; track g.value) {
+              <option [value]="g.value">{{ g.label }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Mô tả / tone giọng</span>
+          <textarea formControlName="description" rows="3"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Giọng mặc định</span>
+          <div class="voice-row">
+            <select formControlName="defaultVoiceId">
+              <option value="">— Chưa chọn —</option>
+              @for (v of voices; track v.id) {
+                <option [value]="v.id">
+                  {{ v.name }} ({{ v.providerCode ?? 'N/A' }}{{ v.gender ? ', ' + v.gender : '' }})
+                </option>
+              }
+            </select>
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              (click)="previewSelectedVoice()"
+              [disabled]="!selectedVoicePreviewUrl"
+              title="Nghe thử giọng đang chọn"
+            >
+              ▶ Nghe thử
+            </button>
+          </div>
+        </label>
+
+        <label class="checkbox-item field-checkbox">
+          <input type="checkbox" formControlName="isNarrator" />
+          <span>Người dẫn truyện (novelId = 0)</span>
+        </label>
+      </form>
+
+      <footer class="dialog-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="saving">Hủy</button>
+        <button type="button" class="btn btn-primary" [disabled]="saving" (click)="submit()">
+          {{ saving ? 'Đang lưu...' : 'Lưu' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+}

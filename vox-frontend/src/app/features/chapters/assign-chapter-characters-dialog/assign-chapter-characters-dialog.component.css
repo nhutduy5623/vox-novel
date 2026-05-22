@@ -1,0 +1,27 @@
+@import '../../../shared/styles/dialog.css';
+
+.dialog-wide {
+  width: min(560px, 100%);
+}
+
+.assign-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.assign-panel h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+}
+
+@media (min-width: 720px) {
+  .dialog-wide {
+    width: min(860px, 100%);
+  }
+
+  .assign-grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}

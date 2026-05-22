@@ -1,0 +1,18 @@
+<div class="ai-menu-wrap">
+  <button
+    type="button"
+    class="btn btn-secondary btn-sm"
+    (click)="toggleMenu()"
+    [disabled]="loading"
+    title="Tạo prompt nhân vật bằng AI"
+  >
+    {{ loading ? '...' : label }}
+  </button>
+  @if (menuOpen) {
+    <div class="ai-menu" role="menu">
+      <button type="button" class="ai-menu-item" (click)="openChatGpt()">ChatGPT</button>
+      <button type="button" class="ai-menu-item" (click)="openGemini()">Gemini</button>
+      <button type="button" class="ai-menu-item" (click)="copyPrompt()">Sao chép prompt</button>
+    </div>
+  }
+</div>

@@ -1,0 +1,54 @@
+@if (open) {
+  <div class="dialog-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="dialog" role="dialog" aria-modal="true" [attr.aria-label]="dialogTitle">
+      <header class="dialog-header">
+        <h2>{{ dialogTitle }}</h2>
+        <button type="button" class="btn-icon" (click)="close()" [disabled]="saving" aria-label="Đóng">
+          ×
+        </button>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="dialog-body">
+        @if (errorMessage) {
+          <div class="alert alert-error">{{ errorMessage }}</div>
+        }
+
+        <label class="field">
+          <span>Tên truyện <em>*</em></span>
+          <input type="text" formControlName="title" placeholder="Nhập tên truyện" />
+          @if (form.controls.title.touched && form.controls.title.hasError('required')) {
+            <small class="field-error">Tên truyện không được để trống</small>
+          }
+        </label>
+
+        <label class="field">
+          <span>Mô tả</span>
+          <textarea formControlName="description" rows="4" placeholder="Mô tả ngắn về truyện"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Ảnh bìa (URL)</span>
+          <input type="url" formControlName="coverImageUrl" placeholder="https://..." />
+        </label>
+
+        <label class="field">
+          <span>Trạng thái <em>*</em></span>
+          <select formControlName="status">
+            @for (opt of statusOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+        </label>
+      </form>
+
+      <footer class="dialog-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="saving">
+          Hủy
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving" (click)="submit()">
+          {{ saving ? 'Đang lưu...' : (isEdit ? 'Cập nhật' : 'Tạo mới') }}
+        </button>
+      </footer>
+    </div>
+  </div>
+}

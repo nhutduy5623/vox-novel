@@ -1,0 +1,222 @@
+<div class="page">
+  <a routerLink="/admin/novels" class="back-link">← Danh sách truyện</a>
+
+  @if (loading) {
+    <div class="state">Đang tải...</div>
+  } @else if (errorMessage && !novel) {
+    <div class="alert alert-error">{{ errorMessage }}</div>
+  } @else if (novel) {
+    <header class="detail-header">
+      <div class="detail-title">
+        @if (novel.coverImageUrl) {
+          <img [src]="novel.coverImageUrl" alt="" class="cover" />
+        }
+        <div>
+          <h1>{{ novel.title }}</h1>
+          <p>
+            <span class="badge" [attr.data-status]="novel.status">{{ statusLabel(novel.status) }}</span>
+            <span class="meta">ID {{ novel.id }} · {{ novel.createdBy ?? '—' }}</span>
+          </p>
+        </div>
+      </div>
+      <div class="detail-actions">
+        <button type="button" class="btn btn-secondary" (click)="openEditNovel()">Sửa truyện</button>
+        <button type="button" class="btn btn-danger-ghost" (click)="confirmDeleteNovel()">Xóa truyện</button>
+      </div>
+    </header>
+
+    @if (errorMessage) {
+      <div class="alert alert-error">{{ errorMessage }}</div>
+    }
+
+    <section class="card info-grid">
+      <div>
+        <h3>Mô tả</h3>
+        <p>{{ novel.description || '—' }}</p>
+      </div>
+      <div>
+        <h3>Thời gian</h3>
+        <dl>
+          <dt>Tạo lúc</dt>
+          <dd>{{ novel.createdAt ? (novel.createdAt | date: 'dd/MM/yyyy HH:mm') : '—' }}</dd>
+          <dt>Cập nhật</dt>
+          <dd>{{ novel.updatedAt ? (novel.updatedAt | date: 'dd/MM/yyyy HH:mm') : '—' }}</dd>
+        </dl>
+      </div>
+    </section>
+
+    <section class="card chapters-section">
+      <div class="section-head">
+        <h2>Chương truyện ({{ novel.chapters.length }})</h2>
+        <button type="button" class="btn btn-primary btn-sm" (click)="openCreateChapter()">+ Thêm chương</button>
+      </div>
+
+      @if (novel.chapters.length === 0) {
+        <p class="muted">Chưa có chương. Thêm chương đầu tiên để bắt đầu.</p>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Số</th>
+                <th>ID</th>
+                <th>Trạng thái</th>
+                <th class="col-actions">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (ch of novel.chapters; track ch.id) {
+                <tr class="row-clickable" (click)="viewChapter(ch)">
+                  <td><strong>Chương {{ ch.chapterNumber }}</strong></td>
+                  <td>{{ ch.id }}</td>
+                  <td>
+                    <span class="badge badge-sm" [attr.data-status]="ch.status">
+                      {{ chapterStatusLabel(ch.status) }}
+                    </span>
+                  </td>
+                  <td class="col-actions" (click)="$event.stopPropagation()">
+                    <button type="button" class="btn btn-ghost btn-sm" (click)="viewChapter(ch)">Chi tiết</button>
+                    <button type="button" class="btn btn-ghost btn-sm" (click)="openEditChapter(ch, $event)">Sửa</button>
+                    <button
+                      type="button"
+                      class="btn btn-danger-ghost btn-sm"
+                      [disabled]="deletingChapterId === ch.id"
+                      (click)="confirmDeleteChapter(ch, $event)"
+                    >
+                      {{ deletingChapterId === ch.id ? 'Đang xóa...' : 'Xóa' }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="card characters-section">
+      <div class="section-head">
+        <h2>Nhân vật truyện</h2>
+        <div class="section-head-actions">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="openCharacterJsonImport()">+ JSON</button>
+          <button type="button" class="btn btn-primary btn-sm" (click)="openCreateCharacter()">+ Thêm nhân vật</button>
+        </div>
+      </div>
+      <p class="muted hint">Nhân vật dùng chung cho cả truyện. Gán vào từng chương tại màn chi tiết chương.</p>
+
+      <h3>Người dẫn truyện ({{ narratorCharacters.length }})</h3>
+      @if (narratorCharacters.length === 0) {
+        <p class="muted">Chưa có người dẫn truyện.</p>
+      } @else {
+        <div class="char-grid">
+          @for (c of narratorCharacters; track c.id) {
+            <div class="char-card">
+              <div class="char-card-top">
+                <div>
+                  <strong>{{ c.name }}</strong>
+                  <span class="muted">{{ c.gender ?? '—' }}</span>
+                  <span class="voice">{{ c.defaultVoiceName ?? 'Chưa gán giọng' }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm btn-icon-play"
+                  (click)="playCharacterVoice(c, $event)"
+                  [disabled]="!characterPreviewUrl(c)"
+                  title="Nghe thử giọng"
+                  aria-label="Nghe giọng"
+                >
+                  ▶
+                </button>
+              </div>
+              <div class="char-actions">
+                <button type="button" class="btn btn-ghost btn-sm" (click)="openEditCharacter(c, $event)">Sửa</button>
+                <button
+                  type="button"
+                  class="btn btn-danger-ghost btn-sm"
+                  [disabled]="deletingCharacterId === c.id"
+                  (click)="confirmDeleteCharacter(c)"
+                >
+                  {{ deletingCharacterId === c.id ? 'Đang xóa...' : 'Xóa' }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <h3>Nhân vật truyện ({{ novelCharacters.length }})</h3>
+      @if (novelCharacters.length === 0) {
+        <p class="muted">Chưa có nhân vật.</p>
+      } @else {
+        <div class="char-grid">
+          @for (c of novelCharacters; track c.id) {
+            <div class="char-card">
+              <div class="char-card-top">
+                <div>
+                  <strong>{{ c.name }}</strong>
+                  <span class="muted">{{ c.gender ?? '—' }}</span>
+                  <span class="voice">{{ c.defaultVoiceName ?? 'Chưa gán giọng' }}</span>
+                </div>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm btn-icon-play"
+                  (click)="playCharacterVoice(c, $event)"
+                  [disabled]="!characterPreviewUrl(c)"
+                  title="Nghe thử giọng"
+                  aria-label="Nghe giọng"
+                >
+                  ▶
+                </button>
+              </div>
+              <div class="char-actions">
+                <button type="button" class="btn btn-ghost btn-sm" (click)="openEditCharacter(c, $event)">Sửa</button>
+                <button
+                  type="button"
+                  class="btn btn-danger-ghost btn-sm"
+                  [disabled]="deletingCharacterId === c.id"
+                  (click)="confirmDeleteCharacter(c)"
+                >
+                  {{ deletingCharacterId === c.id ? 'Đang xóa...' : 'Xóa' }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>
+
+@if (novel) {
+  <app-novel-form-dialog
+    [open]="novelFormOpen"
+    [novel]="novel"
+    (closed)="onNovelFormClosed()"
+    (saved)="onNovelFormSaved($event)"
+  />
+
+  <app-chapter-form-dialog
+    [open]="chapterFormOpen"
+    [novelId]="novel.id"
+    [chapter]="editingChapter"
+    [suggestedChapterNumber]="suggestedChapterNumber"
+    (closed)="onChapterFormClosed()"
+    (saved)="onChapterSaved()"
+  />
+
+  <app-character-form-dialog
+    [open]="characterFormOpen"
+    [novelId]="novel.id"
+    [character]="editingCharacter"
+    [voices]="voices"
+    (closed)="onCharacterFormClosed()"
+    (saved)="onCharacterSaved($event)"
+  />
+
+  <app-character-json-dialog
+    [open]="characterJsonOpen"
+    [novelId]="novel.id"
+    (closed)="onCharacterJsonClosed()"
+    (imported)="onCharacterJsonImported($event)"
+  />
+}

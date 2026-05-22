@@ -2,6 +2,7 @@ package com.voxnovel.core_content_service.service;
 
 import com.voxnovel.core_content_service.dto.request.CreateProviderRequest;
 import com.voxnovel.core_content_service.entity.Provider;
+import com.voxnovel.core_content_service.exception.ResourceNotFoundException;
 import com.voxnovel.core_content_service.mapper.SystemConfigMapper;
 import com.voxnovel.core_content_service.repository.ProviderRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,7 @@ public class ProviderService {
 
     public Provider updateProvider(Long id, CreateProviderRequest request) {
         Provider provider = providerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy Provider với ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy Provider với ID: " + id));
 
         provider.setCode(request.getCode());
         provider.setName(request.getName());

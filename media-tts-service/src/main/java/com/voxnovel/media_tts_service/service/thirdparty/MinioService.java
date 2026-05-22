@@ -102,6 +102,24 @@ public class MinioService {
     }
 
     /**
+     * Lấy byte[] từ MinIO (dùng cho stream audio)
+     */
+    public byte[] getFileBytes(String objectKey) {
+        log.debug("Đang lấy bytes từ MinIO: {}", objectKey);
+        try {
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .build();
+
+            return s3Client.getObjectAsBytes(getObjectRequest).asByteArray();
+        } catch (Exception e) {
+            log.error("❌ Lỗi lấy bytes từ MinIO - Key: {}", objectKey, e);
+            throw new RuntimeException("Lấy file từ Storage thất bại", e);
+        }
+    }
+
+    /**
      * Lấy danh sách đường dẫn (Key) của tất cả các file trong một thư mục
      */
     public List<String> listFilesInDirectory(String prefix) {

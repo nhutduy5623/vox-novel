@@ -11,4 +11,6 @@ public class ScriptLineDto {
     private Integer sequence;
     private String characterId;
     private String text;
+    private String audioDraftLink;
+    private String status;
 }

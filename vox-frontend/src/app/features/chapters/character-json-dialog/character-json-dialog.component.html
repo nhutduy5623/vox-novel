@@ -1,0 +1,41 @@
+@if (open) {
+  <div class="dialog-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="dialog dialog-wide" role="dialog" aria-modal="true">
+      <header class="dialog-header">
+        <h2>Thêm nhân vật bằng JSON</h2>
+        <button type="button" class="btn-icon" (click)="close()" [disabled]="saving">×</button>
+      </header>
+
+      <div class="dialog-body">
+        @if (errorMessage) {
+          <div class="alert alert-error">{{ errorMessage }}</div>
+        }
+
+        <p class="muted">
+          Một object hoặc mảng object. Trường bắt buộc: <code>name</code>. Tùy chọn:
+          <code>gender</code>, <code>description</code>, <code>defaultVoiceId</code>.
+          <code>novelId</code> tự gán theo truyện hiện tại.
+        </p>
+
+        <textarea
+          class="json-input"
+          [(ngModel)]="jsonText"
+          rows="12"
+          placeholder="Dán JSON tại đây..."
+          spellcheck="false"
+        ></textarea>
+
+        <div class="json-actions">
+          <button type="button" class="btn btn-ghost btn-sm" (click)="useExample()">Điền mẫu</button>
+        </div>
+      </div>
+
+      <footer class="dialog-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="saving">Hủy</button>
+        <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="saving">
+          {{ saving ? 'Đang import...' : 'Import' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+}

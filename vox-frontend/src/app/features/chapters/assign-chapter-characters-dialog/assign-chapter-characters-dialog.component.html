@@ -1,0 +1,91 @@
+@if (open) {
+  <div class="dialog-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="dialog dialog-wide" role="dialog" aria-modal="true">
+      <header class="dialog-header">
+        <h2>Gán nhân vật vào chương</h2>
+        <button type="button" class="btn-icon" (click)="close()" [disabled]="saving">×</button>
+      </header>
+
+      <div class="dialog-body">
+        @if (errorMessage) {
+          <div class="alert alert-error">{{ errorMessage }}</div>
+        }
+
+        <div class="assign-grid">
+          <div class="assign-panel">
+            <h3>Người dẫn truyện</h3>
+            <p class="muted">Chỉ được chọn 1 người.</p>
+
+            @if (loading) {
+              <p class="muted">Đang tải...</p>
+            } @else if (narratorCharacters.length === 0) {
+              <p class="muted">Chưa có người dẫn truyện.</p>
+            } @else {
+              <div class="checkbox-list">
+                @for (c of narratorCharacters; track c.id) {
+                  <label class="checkbox-item">
+                    <input
+                      type="radio"
+                      name="narrator"
+                      [checked]="selectedNarratorId === c.id"
+                      (change)="selectedNarratorId = c.id"
+                    />
+                    <span>
+                      <strong>{{ c.name }}</strong>
+                      <span class="muted"> · {{ c.gender ?? '—' }}</span>
+                      @if (c.defaultVoiceName) {
+                        <span class="muted"> · {{ c.defaultVoiceName }}</span>
+                      }
+                    </span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="assign-panel">
+            <h3>Nhân vật chương</h3>
+            <p class="muted">Chọn nhiều nhân vật (chưa có trong chương).</p>
+
+            <label class="field">
+              <span>Tìm theo tên</span>
+              <input type="search" [(ngModel)]="searchName" placeholder="Nhập tên nhân vật..." autocomplete="off" />
+            </label>
+
+            @if (loading) {
+              <p class="muted">Đang tải...</p>
+            } @else if (availableCharacters.length === 0) {
+              <p class="muted">Không còn nhân vật nào để gán. Tạo nhân vật mới ở truyện trước.</p>
+            } @else {
+              <div class="checkbox-list">
+                @for (c of availableCharacters; track c.id) {
+                  <label class="checkbox-item">
+                    <input
+                      type="checkbox"
+                      [checked]="isSelected(c.id)"
+                      (change)="toggle(c.id, $any($event.target).checked)"
+                    />
+                    <span>
+                      <strong>{{ c.name }}</strong>
+                      <span class="muted"> · {{ c.gender ?? '—' }}</span>
+                      @if (c.defaultVoiceName) {
+                        <span class="muted"> · {{ c.defaultVoiceName }}</span>
+                      }
+                    </span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <footer class="dialog-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="saving">Hủy</button>
+        <button type="button" class="btn btn-primary" (click)="submit()" [disabled]="saving || loading">
+          {{ saving ? 'Đang gán...' : 'Gán vào chương' }}
+        </button>
+      </footer>
+    </div>
+  </div>
+}

@@ -1,0 +1,36 @@
+@if (open) {
+  <div class="dialog-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="dialog" role="dialog" aria-modal="true">
+      <header class="dialog-header">
+        <h2>{{ dialogTitle }}</h2>
+        <button type="button" class="btn-icon" (click)="close()">×</button>
+      </header>
+
+      <form [formGroup]="form" class="dialog-body">
+        <label class="field">
+          <span>Nhân vật <em>*</em></span>
+          <select formControlName="characterId">
+            @for (c of characters; track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Nội dung thoại <em>*</em></span>
+          <textarea formControlName="text" rows="4"></textarea>
+        </label>
+
+        <label class="field">
+          <span>Trạng thái dòng</span>
+          <input type="text" formControlName="status" placeholder="Tùy chọn" />
+        </label>
+      </form>
+
+      <footer class="dialog-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()">Hủy</button>
+        <button type="button" class="btn btn-primary" (click)="submit()">Lưu</button>
+      </footer>
+    </div>
+  </div>
+}

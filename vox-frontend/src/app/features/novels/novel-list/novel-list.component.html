@@ -1,0 +1,138 @@
+<div class="page">
+  <header class="page-header">
+    <div>
+      <h1>Quản lý truyện</h1>
+      <p>Danh sách novel — tìm kiếm, sắp xếp và phân trang</p>
+    </div>
+    <button type="button" class="btn btn-primary" (click)="openCreate()">+ Thêm truyện</button>
+  </header>
+
+  <section class="toolbar card">
+    <div class="toolbar-search">
+      <label for="novel-search">Tìm theo tên</label>
+      <input
+        id="novel-search"
+        type="search"
+        [(ngModel)]="searchTitle"
+        (ngModelChange)="onSearchInput()"
+        placeholder="Nhập tên truyện..."
+        autocomplete="off"
+      />
+    </div>
+    <div class="toolbar-filters">
+      <label>
+        Sắp xếp
+        <select [(ngModel)]="sort" (ngModelChange)="onSortChange()">
+          @for (opt of sortOptions; track opt.value) {
+            <option [value]="opt.value">{{ opt.label }}</option>
+          }
+        </select>
+      </label>
+      <label>
+        / trang
+        <select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+          @for (size of pageSizeOptions; track size) {
+            <option [value]="size">{{ size }}</option>
+          }
+        </select>
+      </label>
+    </div>
+  </section>
+
+  @if (errorMessage) {
+    <div class="alert alert-error">{{ errorMessage }}</div>
+  }
+
+  <section class="card table-card">
+    @if (loading) {
+      <div class="state state-loading">Đang tải...</div>
+    } @else if (novels.length === 0) {
+      <div class="state state-empty">
+        Không có truyện nào.
+        @if (searchTitle) {
+          Thử đổi từ khóa tìm kiếm.
+        } @else {
+          <button type="button" class="btn btn-primary btn-sm" (click)="openCreate()">Thêm truyện đầu tiên</button>
+        }
+      </div>
+    } @else {
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tên truyện</th>
+              <th>Trạng thái</th>
+              <th>Người tạo</th>
+              <th>Ngày tạo</th>
+              <th class="col-actions">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (novel of novels; track novel.id) {
+              <tr class="row-clickable" (click)="viewDetail(novel)">
+                <td>{{ novel.id }}</td>
+                <td>
+                  <div class="title-cell">
+                    @if (novel.coverImageUrl) {
+                      <img [src]="novel.coverImageUrl" alt="" class="cover-thumb" />
+                    }
+                    <div>
+                      <strong>{{ novel.title }}</strong>
+                      @if (novel.description) {
+                        <span class="desc-preview">{{ novel.description }}</span>
+                      }
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="badge" [attr.data-status]="novel.status">{{ statusLabel(novel.status) }}</span>
+                </td>
+                <td>{{ novel.createdBy ?? '—' }}</td>
+                <td>{{ novel.createdAt ? (novel.createdAt | date: 'dd/MM/yyyy HH:mm') : '—' }}</td>
+                <td class="col-actions" (click)="$event.stopPropagation()">
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="viewDetail(novel)">Chi tiết</button>
+                  <button type="button" class="btn btn-ghost btn-sm" (click)="openEdit(novel, $event)">Sửa</button>
+                  <button
+                    type="button"
+                    class="btn btn-danger-ghost btn-sm"
+                    [disabled]="deletingId === novel.id"
+                    (click)="confirmDelete(novel, $event)"
+                  >
+                    {{ deletingId === novel.id ? 'Đang xóa...' : 'Xóa' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pagination">
+        <span class="pagination-info">
+          Trang {{ page + 1 }} / {{ totalPages || 1 }} — {{ totalElements }} truyện
+        </span>
+        <div class="pagination-actions">
+          <button type="button" class="btn btn-secondary btn-sm" [disabled]="page === 0" (click)="goToPage(page - 1)">
+            Trước
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary btn-sm"
+            [disabled]="page >= totalPages - 1"
+            (click)="goToPage(page + 1)"
+          >
+            Sau
+          </button>
+        </div>
+      </footer>
+    }
+  </section>
+</div>
+
+<app-novel-form-dialog
+  [open]="formOpen"
+  [novel]="editingNovel"
+  (closed)="onFormClosed()"
+  (saved)="onFormSaved()"
+/>

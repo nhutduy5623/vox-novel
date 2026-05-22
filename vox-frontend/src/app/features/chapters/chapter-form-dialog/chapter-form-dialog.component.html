@@ -1,0 +1,49 @@
+@if (open) {
+  <div class="dialog-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="dialog" role="dialog" aria-modal="true">
+      <header class="dialog-header">
+        <h2>{{ dialogTitle }}</h2>
+        <button type="button" class="btn-icon" (click)="close()" [disabled]="saving">×</button>
+      </header>
+
+      <form [formGroup]="form" class="dialog-body" (ngSubmit)="submit()">
+        @if (errorMessage) {
+          <div class="alert alert-error">{{ errorMessage }}</div>
+        }
+
+        <label class="field">
+          <span>Số chương <em>*</em></span>
+          <input type="number" formControlName="chapterNumber" min="1" />
+        </label>
+
+        <label class="field">
+          <span>Tiêu đề <em>*</em></span>
+          <input type="text" formControlName="title" placeholder="Chương 1: ..." />
+        </label>
+
+        <label class="field">
+          <span>Nội dung gốc <em>*</em></span>
+          <textarea formControlName="originalContent" rows="8"></textarea>
+        </label>
+
+        @if (isEdit) {
+          <label class="field">
+            <span>Trạng thái</span>
+            <select formControlName="status">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </label>
+        }
+      </form>
+
+      <footer class="dialog-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="saving">Hủy</button>
+        <button type="button" class="btn btn-primary" [disabled]="saving" (click)="submit()">
+          {{ saving ? 'Đang lưu...' : (isEdit ? 'Cập nhật' : 'Tạo chương') }}
+        </button>
+      </footer>
+    </div>
+  </div>
+}
