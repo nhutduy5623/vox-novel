@@ -11,7 +11,7 @@ spring:
   ai:
     google:
       genai:
-        api-key: 1
+          api-key: ${GOOGLE_GENAI_API_KEY}
 
 # Tắt tạm logging rác của các thư viện, chỉ hiện log của thư mục com.voxnovel (thay bằng package name của bạn)
 logging:
@@ -20,7 +20,7 @@ logging:
 # Khai báo danh sách các Key (Lấy từ biến môi trường)
 vox-novel:
   ai-engine-service:
-    keys:  1, 2, 3, 4, 5
+    keys: ${AI_ENGINE_KEYS}
 
 rabbitmq:
   exchange: ai.exchange

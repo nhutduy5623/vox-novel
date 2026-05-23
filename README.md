@@ -1,6 +1,6 @@
-# Vox-Novel 🎙️📚 
-[![AI Assisted](https://img.shields.io/badge/AI_Assisted-Gemini_Pro-blue.svg)](https://deepmind.google/technologies/gemini/) [![Build Status](https://img.shields.io/badge/build-passing-green.svg)](https://www.google.com/) [![Language](https://img.shields.io/badge/language-Java-orange.svg)](https://www.java.com/) 
+# Vox-Novel 🎙️📚
 **Nền tảng Sách nói Phân vai Tự động bằng Trí tuệ Nhân tạo**
+
 ## 1. Giới thiệu
 **Vox-Novel** là một hệ thống chuyển thể truyện chữ (tiểu thuyết) thành sách nói (audiobook) sinh động. Khác với các hệ thống Text-to-Speech (TTS) thông thường chỉ đọc đều đều một giọng, Vox-Novel sử dụng **AI (Large Language Models)** để tự động bóc tách kịch bản, xác định xem nhân vật nào đang nói câu nào, đoạn nào là lời của người dẫn chuyện. Sau đó, hệ thống gọi các dịch vụ TTS bên thứ ba để lồng tiếng cho từng nhân vật với các chất giọng khác nhau, cuối cùng tự động chuẩn hóa và ghép nối thành một file audio chương truyện hoàn chỉnh.
 

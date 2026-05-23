@@ -22,3 +22,6 @@ bin/
 
 #file cá nhân
 Note/
+
+# Environment files
+.env

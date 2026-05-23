@@ -23,12 +23,12 @@ voxnovel:
     providers:
       fpt:
         api-keys:
-          - "1"
-          - "2"
+          - ${FPT_TTS_API_KEY_1}
+          - ${FPT_TTS_API_KEY_2}
       cambai:
         api-keys:
-          - "3"
-          - "4"
+          - ${CAMBAI_TTS_API_KEY_1}
+          - ${CAMBAI_TTS_API_KEY_2}
 
 
 rabbitmq:
